@@ -1,0 +1,64 @@
+#!/bin/bash
+
+RUN_DIR=/var/vcap/sys/run/signalfx-agent
+LOG_DIR=/var/vcap/sys/log/signalfx-agent
+PIDFILE=${RUN_DIR}/pid
+
+COLLECTD_PACKAGE=/var/vcap/packages/signalfx-collectd
+RUNC_PACKAGE=/var/vcap/packages/runc
+
+case $1 in
+
+  start)
+    mkdir -p $RUN_DIR $LOG_DIR
+    chown -R vcap:vcap $RUN_DIR $LOG_DIR
+
+    exec >>$LOG_DIR/signalfx-agent.stdout.log \
+        2>>$LOG_DIR/signalfx-agent.stderr.log
+
+
+    # Make sure cgroups are setup properly for runc (BOSH-Lite definitely
+    # doesn't have them mounted)
+    if ! mount | grep cgroup
+    then
+      mount -t tmpfs cgroup /sys/fs/cgroup
+      mkdir /sys/fs/cgroup/{memory,cpu,devices}
+      mount -t cgroup -o memory cgroup_memory /sys/fs/cgroup/memory
+      mount -t cgroup -o cpu cgroup_cpu /sys/fs/cgroup/cpu
+      mount -t cgroup -o devices cgroup_devices /sys/fs/cgroup/devices
+    fi
+
+    cd $(readlink -f $COLLECTD_PACKAGE)
+
+    # Reset config to the templated files so that the start up script can fill
+    # them in again.  This is in case collectd gets restarted by monit.
+    rm -rf rootfs/etc/collectd
+    cp -r rootfs/etc/collectd.templates rootfs/etc/collectd
+
+  <% if_p('signalfx.agent.collectd_configs') do |config| %>
+    cat <<EOH > rootfs/etc/collectd/managed_config/10-all-configs.conf
+<%= config %>
+EOH
+  <% end %>
+
+    extra_dims="sfxdim_deployment=<%= spec.deployment %>&sfxdim_id=<%= spec.id %>&sfxdim_index=<%= spec.index %>&sfxdim_host=<%= spec.ip %>&sfxdim_job=<%= spec.name %>"
+
+    sed -i -e "s/<SF_API_TOKEN>/<%= p('signalfx.agent.api_token') %>/" config.json
+    sed -i -e "s/<EXTRA_DIMS>/${extra_dims}/" config.json
+
+    (crontab -l | sed /signalfx-agent.*logrotate/d; cat /var/vcap/jobs/signalfx-agent/config/logrotate.cron) | sed /^$/d | crontab
+
+    ${RUNC_PACKAGE}/runc run -d --pid-file $PIDFILE signalfx-agent
+
+    ;;
+
+  stop)
+    kill -9 `cat $PIDFILE`
+    rm -f $PIDFILE
+
+    ;;
+
+  *)
+    echo "Usage: ctl {start|stop}" ;;
+
+esac

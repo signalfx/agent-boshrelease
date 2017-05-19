@@ -1,0 +1,9 @@
+---
+name: signalfx-collectd
+
+dependencies:
+ - runc
+
+files:
+ - signalfx-collectd/collectd-rootfs.tar.gz
+ - signalfx-collectd/runc-config.json

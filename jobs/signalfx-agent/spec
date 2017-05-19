@@ -1,0 +1,24 @@
+---
+name: signalfx-agent
+
+templates:
+  ctl.erb: bin/ctl
+
+packages:
+ - signalfx-collectd
+ - runc
+
+properties:
+  signalfx.agent.api_token:
+    description: Your SignalFx API Token
+  signalfx.agent.logrotate.freq_min:
+    description: "The frequency in minutes which logrotate will check if it needs to rotate VM logs"
+    default: 5
+  signalfx.agent.logrotate.rotate:
+    description: "The number of files that logrotate will keep around on the VM"
+    default: 5
+  signalfx.agent.logrotate.size:
+    description: "The size at which logrotate will decide to rotate the log file"
+    default: 10M
+  signalfx.agent.collectd_configs
+    description: "A heredoc of the collectd configuration you want to use for this instance"

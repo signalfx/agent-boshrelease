@@ -1,0 +1,94 @@
+---
+#meta:
+#  environment: signalfx-agent-warden
+#
+#name: signalfx-agent-dev
+#director_uuid: <WARDEN_UUID>
+
+releases:
+- name: signalfx-agent
+  version: '0+dev.1'
+- name: redis
+  version: 13.0.0
+  url: https://github.com/cloudfoundry-community/redis-boshrelease/releases/download/v13.0.0/redis-13.0.0.tgz
+  sha1: 7cc104e398c7c7dc74841343e1a6b689927f7d99
+
+stemcells:
+- alias: default
+  name: bosh-warden-boshlite-ubuntu-trusty-go_agent
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+instance_groups:
+- name: agent-with-redis
+  instances: 1
+  azs: ["z1"]
+  jobs:
+  - name: signalfx-agent
+    release: signalfx-agent
+	properties:
+      signalfx:
+        agent:
+          api_token: <SIGNALFX_API_TOKEN>
+          collectd_configs: |
+            <LoadPlugin python>
+              Globals true
+            </LoadPlugin>
+
+            <Plugin python>
+              ModulePath "/usr/share/collectd/redis"
+              Import "redis_info"
+
+              <Module redis_info>
+                Host "localhost"
+                Port 6379
+                Redis_uptime_in_seconds "gauge"
+                Redis_used_cpu_sys "counter"
+                Redis_used_cpu_user "counter"
+                Redis_used_cpu_sys_children "counter"
+                Redis_used_cpu_user_children "counter"
+                Redis_uptime_in_days "gauge"
+                Redis_lru_clock "counter"
+                Redis_connected_clients "gauge"
+                Redis_connected_slaves "gauge"
+                Redis_client_longest_output_list "gauge"
+                Redis_client_biggest_input_buf "gauge"
+                Redis_blocked_clients "gauge"
+                Redis_expired_keys "counter"
+                Redis_evicted_keys "counter"
+                Redis_rejected_connections "counter"
+                Redis_used_memory "bytes"
+                Redis_used_memory_rss "bytes"
+                Redis_used_memory_peak "bytes"
+                Redis_used_memory_lua "bytes"
+                Redis_mem_fragmentation_ratio "gauge"
+                Redis_changes_since_last_save "gauge"
+                Redis_instantaneous_ops_per_sec "gauge"
+                Redis_rdb_bgsave_in_progress "gauge"
+                Redis_total_connections_received "counter"
+                Redis_total_commands_processed "counter"
+                Redis_total_net_input_bytes "counter"
+                Redis_total_net_output_bytes "counter"
+                Redis_keyspace_hits "derive"
+                Redis_keyspace_misses "derive"
+                Redis_latest_fork_usec "gauge"
+                Redis_connected_slaves "gauge"
+                Redis_repl_backlog_first_byte_offset "gauge"
+                Redis_master_repl_offset "gauge"
+                Redis_db0_keys "gauge"
+                Redis_db0_expires "gauge"
+                Redis_db0_avg_ttl "gauge"
+              </Module>
+            </Plugin> 
+  - name: redis
+    release: redis
+  vm_type: default
+  stemcell: default
+  networks:
+  - name: default
+

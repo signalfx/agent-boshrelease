@@ -1,0 +1,15 @@
+*.tar.gz
+*.tgz
+.dev_builds/
+.blobs/
+
+dev_releases/
+.sfx-token
+manifest/agent-with-redis.yml
+config/private.yml
+
+tmp/*
+!tmp/.gitkeep
+
+src/signalfx-collectd/managed_config/*
+!src/signalfx-collectd/managed_config/.gitkeep

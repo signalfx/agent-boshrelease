@@ -1,0 +1,3 @@
+#!/bin/bash
+
+wget -O tmp/runc-linux-amd64 $(grep runc-linux-amd64 packages/runc/spec | awk '{print $NF}')
