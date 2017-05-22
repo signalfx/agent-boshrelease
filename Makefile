@@ -1,3 +1,5 @@
+BUILD_IMAGE := quay.io/signalfuse/agent-boshrelease-build:latest
+
 collectd-rootfs-blob:
 	rm -rf tmp/collectd-rootfs.tar.gz
 	bash make-collectd-rootfs
@@ -9,6 +11,12 @@ runc-blob:
 	bosh add-blob tmp/runc-linux-amd64 runc/runc-linux-amd64
 
 blobs: runc-blob collectd-rootfs-blob
+
+final-release-docker:
+	docker run --rm -v $$(pwd):/opt/bosh-release $(BUILD_IMAGE) make final-release
+
+final-release:
+	bosh create-release --final --with-tarball --name signalfx-agent --force
 
 manifest/agent-with-redis.yml: .sfx-token manifest/agent-with-redis.yml.template
 	bosh int manifest/agent-with-redis.yml.template \
