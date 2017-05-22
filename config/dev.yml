@@ -1,3 +1,2 @@
 ---
-dev_name: signalfx-bridge
-latest_release_filename: "/Users/bk0002/go/src/github.com/signalfx/cloudfoundry-integration/agent-bosh-release/dev_releases/signalfx-agent/signalfx-agent-0+dev.1.yml"
+dev_name: signalfx-agent

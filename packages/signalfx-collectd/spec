@@ -7,3 +7,4 @@ dependencies:
 files:
  - signalfx-collectd/collectd-rootfs.tar.gz
  - signalfx-collectd/runc-config.json
+ - signalfx-collectd/managed_config/**/*

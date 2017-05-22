@@ -17,8 +17,8 @@
     "env": [
       "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
       "TERM=xterm",
-      "SF_API_TOKEN=<SF_API_TOKEN>"
-      "ADD_DIMENSIONS=<EXTRA_DIMS>"
+      "SF_API_TOKEN=<SF_API_TOKEN>",
+      "DIMENSIONS=<DIMENSIONS>"
     ],
     "cwd": "/",
     "noNewPrivileges": true
@@ -32,6 +32,12 @@
       "destination": "/mnt/hostname",
       "type": "bind",
       "source": "/etc/hostname",
+      "options": ["rbind"]
+    },
+    {
+      "destination": "/etc/hosts",
+      "type": "bind",
+      "source": "/etc/hosts",
       "options": ["rbind"]
     },
     {

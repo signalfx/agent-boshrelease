@@ -2,6 +2,7 @@
 *.tgz
 .dev_builds/
 .blobs/
+blobs/
 
 dev_releases/
 .sfx-token

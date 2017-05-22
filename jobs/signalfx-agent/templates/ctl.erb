@@ -1,11 +1,15 @@
 #!/bin/bash
 
+set -e
+
 RUN_DIR=/var/vcap/sys/run/signalfx-agent
 LOG_DIR=/var/vcap/sys/log/signalfx-agent
 PIDFILE=${RUN_DIR}/pid
 
 COLLECTD_PACKAGE=/var/vcap/packages/signalfx-collectd
 RUNC_PACKAGE=/var/vcap/packages/runc
+
+runc="${RUNC_PACKAGE}/runc --root $RUN_DIR"
 
 case $1 in
 
@@ -15,7 +19,6 @@ case $1 in
 
     exec >>$LOG_DIR/signalfx-agent.stdout.log \
         2>>$LOG_DIR/signalfx-agent.stderr.log
-
 
     # Make sure cgroups are setup properly for runc (BOSH-Lite definitely
     # doesn't have them mounted)
@@ -31,29 +34,34 @@ case $1 in
     cd $(readlink -f $COLLECTD_PACKAGE)
 
     # Reset config to the templated files so that the start up script can fill
-    # them in again.  This is in case collectd gets restarted by monit.
+    # them in again.  This is in case collectd gets restarted by monit or
+    # redeployed.
     rm -rf rootfs/etc/collectd
     cp -r rootfs/etc/collectd.templates rootfs/etc/collectd
 
-  <% if_p('signalfx.agent.collectd_configs') do |config| %>
-    cat <<EOH > rootfs/etc/collectd/managed_config/10-all-configs.conf
+  <% if_p('collectd_configs') do |config| %>
+    cat <<EOH > rootfs/etc/collectd/managed_config/20-custom-configs.conf
 <%= config %>
 EOH
   <% end %>
 
-    extra_dims="sfxdim_deployment=<%= spec.deployment %>&sfxdim_id=<%= spec.id %>&sfxdim_index=<%= spec.index %>&sfxdim_host=<%= spec.ip %>&sfxdim_job=<%= spec.name %>"
+    extra_dims='deployment=<%= spec.deployment %> id=<%= spec.id %> index=<%= spec.index %> host=<%= spec.ip %> job=<%= spec.name %>'
 
-    sed -i -e "s/<SF_API_TOKEN>/<%= p('signalfx.agent.api_token') %>/" config.json
-    sed -i -e "s/<EXTRA_DIMS>/${extra_dims}/" config.json
+    sed \
+      -e "s/<SF_API_TOKEN>/<%= p('api_token') %>/" \
+      -e "s/<DIMENSIONS>/${extra_dims}/" \
+      config.json.template > config.json
 
     (crontab -l | sed /signalfx-agent.*logrotate/d; cat /var/vcap/jobs/signalfx-agent/config/logrotate.cron) | sed /^$/d | crontab
 
-    ${RUNC_PACKAGE}/runc run -d --pid-file $PIDFILE signalfx-agent
+    $runc delete signalfx-agent || true
+    $runc run -d --pid-file $PIDFILE signalfx-agent
 
     ;;
 
   stop)
-    kill -9 `cat $PIDFILE`
+    $runc kill signalfx-agent
+    $runc delete signalfx-agent || true
     rm -f $PIDFILE
 
     ;;

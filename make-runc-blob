@@ -1,3 +1,4 @@
 #!/bin/bash
 
+# Get the binary URL from the spec file in the package
 wget -O tmp/runc-linux-amd64 $(grep runc-linux-amd64 packages/runc/spec | awk '{print $NF}')

@@ -4,5 +4,6 @@ set -e
 tar -xf signalfx-collectd/collectd-rootfs.tar.gz
 
 cp -R rootfs ${BOSH_INSTALL_TARGET}
-cp signalfx-collectd/runc-config.json ${BOSH_INSTALL_TARGET}/config.json
-cp signalfx-collectd/managed_config/* ${BOSH_INSTALL_TARGET}/rootfs/etc/collectd.templates/managed_config/
+cp signalfx-collectd/runc-config.json ${BOSH_INSTALL_TARGET}/config.json.template
+
+find signalfx-collectd/managed_config -type f -exec cp \{\} ${BOSH_INSTALL_TARGET}/rootfs/etc/collectd.templates/managed_config/ \;

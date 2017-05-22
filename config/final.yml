@@ -1,5 +1,5 @@
 ---
-final_name: signalfx-bridge
+final_name: signalfx-agent
 blobstore:
   provider: s3
   options:

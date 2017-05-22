@@ -5,7 +5,7 @@ set -e
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Use the ubuntu-based image until the alpine one is ready
-docker_image=quay.io/signalfuse/collectd-plugins #-alpine
+docker_image=quay.io/signalfuse/collectd-plugins:latest #-alpine
 
 tmpdir=$(mktemp -d /tmp/collectd-rootfs-XXX)
 trap "rm -rf $tmpdir" EXIT
