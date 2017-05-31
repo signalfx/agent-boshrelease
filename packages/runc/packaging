@@ -1,5 +1,0 @@
-# abort script on any command that exits with a non zero value
-set -e
-
-cp runc/runc-linux-amd64 ${BOSH_INSTALL_TARGET}/runc
-chmod +x ${BOSH_INSTALL_TARGET}/runc

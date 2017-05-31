@@ -28,14 +28,14 @@ instance_groups:
   - name: signalfx-agent
     release: signalfx-agent
     properties:
-      api_token: ((signalfx_api_token))
+      access_token: ((signalfx_access_token))
       collectd_configs: |
         <LoadPlugin python>
           Globals true
         </LoadPlugin>
 
         <Plugin python>
-          ModulePath "/usr/share/collectd/redis"
+          ModulePath "/var/vcap/packages/signalfx-collectd/plugins/redis"
           Import "redis_info"
 
           <Module redis_info>

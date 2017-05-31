@@ -4,12 +4,9 @@ set -e
 
 RUN_DIR=/var/vcap/sys/run/signalfx-agent
 LOG_DIR=/var/vcap/sys/log/signalfx-agent
-PIDFILE=${RUN_DIR}/pid
+PID_FILE=${RUN_DIR}/pid
 
 COLLECTD_PACKAGE=/var/vcap/packages/signalfx-collectd
-RUNC_PACKAGE=/var/vcap/packages/runc
-
-runc="${RUNC_PACKAGE}/runc --root $RUN_DIR"
 
 case $1 in
 
@@ -17,52 +14,35 @@ case $1 in
     mkdir -p $RUN_DIR $LOG_DIR
     chown -R vcap:vcap $RUN_DIR $LOG_DIR
 
-    exec >>$LOG_DIR/signalfx-agent.stdout.log \
-        2>>$LOG_DIR/signalfx-agent.stderr.log
+    LOG_FILE=$LOG_DIR/signalfx-agent.log
 
-    # Make sure cgroups are setup properly for runc (BOSH-Lite definitely
-    # doesn't have them mounted)
-    if ! mount | grep cgroup
-    then
-      mount -t tmpfs cgroup /sys/fs/cgroup
-      mkdir /sys/fs/cgroup/{memory,cpu,devices}
-      mount -t cgroup -o memory cgroup_memory /sys/fs/cgroup/memory
-      mount -t cgroup -o cpu cgroup_cpu /sys/fs/cgroup/cpu
-      mount -t cgroup -o devices cgroup_devices /sys/fs/cgroup/devices
-    fi
+    exec 2>&1 >>$LOG_FILE
 
     cd $(readlink -f $COLLECTD_PACKAGE)
 
-    # Reset config to the templated files so that the start up script can fill
-    # them in again.  This is in case collectd gets restarted by monit or
-    # redeployed.
-    rm -rf rootfs/etc/collectd
-    cp -r rootfs/etc/collectd.templates rootfs/etc/collectd
-
   <% if_p('collectd_configs') do |config| %>
-    cat <<EOH > rootfs/etc/collectd/managed_config/20-custom-configs.conf
+    cat <<EOH > etc/managed_config/20-custom-configs.conf
 <%= config %>
 EOH
   <% end %>
 
-    extra_dims='deployment=<%= spec.deployment %> id=<%= spec.id %> index=<%= spec.index %> host=<%= spec.ip %> job=<%= spec.name %>'
-
-    sed \
-      -e "s/<SF_API_TOKEN>/<%= p('api_token') %>/" \
-      -e "s/<DIMENSIONS>/${extra_dims}/" \
-      config.json.template > config.json
-
     (crontab -l | sed /signalfx-agent.*logrotate/d; cat /var/vcap/jobs/signalfx-agent/config/logrotate.cron) | sed /^$/d | crontab
 
-    $runc delete signalfx-agent || true
-    $runc run -d --pid-file $PIDFILE signalfx-agent
+    ACCESS_TOKEN=<%= p('access_token') %> \
+    SFX_DIM=deployment=<%= spec.deployment %> \
+    SFX_DIM_id=<%= spec.id %> \
+    SFX_DIM_index=<%= spec.index %> \
+    SFX_DIM_host=<%= spec.ip %> \
+    SFX_DIM_job=<%= spec.name %> \
+    PID_FILE=$PID_FILE \
+    LOG_FILE=$LOG_FILE \
+      ./run.sh
 
     ;;
 
   stop)
-    $runc kill signalfx-agent
-    $runc delete signalfx-agent || true
-    rm -f $PIDFILE
+    kill $(cat $PID_FILE)
+    rm -f $PID_FILE
 
     ;;
 

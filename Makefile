@@ -1,26 +1,21 @@
 BUILD_IMAGE := quay.io/signalfuse/agent-boshrelease-build:latest
+DOCKER_RUN := docker run --rm -v $$(pwd):/opt/bosh-release $(BUILD_IMAGE)
 
-collectd-rootfs-blob:
-	rm -rf tmp/collectd-rootfs.tar.gz
-	bash make-collectd-rootfs
-	bosh add-blob tmp/collectd-rootfs.tar.gz signalfx-collectd/collectd-rootfs.tar.gz
+# The sed transforms "1.2.3-1.0" to "1.2.3-1"
+BUNDLE_VERSION := $(shell cat VERSION | sed 's/\(-.\)\..*$$/\1/')
 
-runc-blob:
-	rm -rf tmp/runc-linux-amd64
-	bash make-runc-blob
-	bosh add-blob tmp/runc-linux-amd64 runc/runc-linux-amd64
+collectd-bundle-$(BUNDLE_VERSION).tar.gz:
+	wget https://github.com/signalfx/collectd-build-bundle/releases/download/v$(BUNDLE_VERSION)/collectd-bundle-$(BUNDLE_VERSION).tar.gz
 
-blobs: runc-blob collectd-rootfs-blob
+collectd-blob: collectd-bundle-$(BUNDLE_VERSION).tar.gz
+	bosh add-blob $< signalfx-collectd/$<
 
-final-release-docker:
-	docker run --rm -v $$(pwd):/opt/bosh-release $(BUILD_IMAGE) make final-release
-
-final-release:
-	bosh create-release --final --with-tarball --name signalfx-agent --force
+final-release: collectd-blob
+	$(DOCKER_RUN) bosh create-release --final --name signalfx-agent --force
 
 manifest/agent-with-redis.yml: .sfx-token manifest/agent-with-redis.yml.template
 	bosh int manifest/agent-with-redis.yml.template \
-		-v signalfx_api_token=$$(cat .sfx-token) \
+		-v signalfx_access_token=$$(cat .sfx-token) \
 		-v redis_password=password \
 		> manifest/agent-with-redis.yml
 
@@ -29,4 +24,4 @@ bosh-dev-deploy: manifest/agent-with-redis.yml
 	bosh -e bosh-lite upload-release --fix
 	bosh -e bosh-lite -d agent-with-redis deploy manifest/agent-with-redis.yml
 
-.PHONY: collectd-rootfs-blob runc-blob blobs bosh-dev-release
+.PHONY: final-release bosh-dev-release

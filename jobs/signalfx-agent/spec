@@ -8,10 +8,9 @@ templates:
 
 packages:
  - signalfx-collectd
- - runc
 
 properties:
-  api_token:
+  access_token:
     description: Your SignalFx API Token
   logrotate.freq_min:
     description: "The frequency in minutes which logrotate will check if it needs to rotate VM logs"

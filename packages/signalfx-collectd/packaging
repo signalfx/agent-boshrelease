@@ -1,9 +1,8 @@
 # abort script on any command that exits with a non zero value
 set -e
 
-tar -xf signalfx-collectd/collectd-rootfs.tar.gz
+tar -xf signalfx-collectd/collectd-bundle-*.tar.gz
 
-cp -R rootfs ${BOSH_INSTALL_TARGET}
-cp signalfx-collectd/runc-config.json ${BOSH_INSTALL_TARGET}/config.json.template
+cp -R collectd/* ${BOSH_INSTALL_TARGET}
 
-find signalfx-collectd/managed_config -type f -exec cp \{\} ${BOSH_INSTALL_TARGET}/rootfs/etc/collectd.templates/managed_config/ \;
+find signalfx-collectd/managed_config -type f -exec cp \{\} ${BOSH_INSTALL_TARGET}/etc/managed_config/ \;

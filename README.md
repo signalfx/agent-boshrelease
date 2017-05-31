@@ -1,19 +1,13 @@
 # SignalFx Agent BOSH Release
 
-This is a BOSH release of the SignalFx collectd agent. The agent runs on the
-BOSH-managed VM using the [runc](https://github.com/opencontainers/runc) tool
-for running simple Linux containers.  Runc is what Docker uses underneath the
-covers.  This is a much simpler approach than running the agent in a full-blown
-Docker installation, or having to install collectd directly on the various
-stemcells.  This container only makes use of the *mount* namespace so there is
-no complexity around routing network requests from collectd.
-
-This should run on any stemcell that has a reasonably new Linux kernel (3.10+,
-although supposedly 2.6.2x will work with the right patches for namespace
-support).  Cgroups do have to be mounted at `/sys/fs/cgroups` but the startup
-script takes care of mounting that if it is not already.
+This is a BOSH release of the SignalFx collectd agent. It uses a [self-contained
+bundle of collectd](https://github.com/signalfx/collectd-build-bundle) to run.
 
 ## Configuration
+
+Specify your SignalFx access token with the `access_token` property in your
+manifest entry for this release.
+
 There are two ways to configure the collectd agent: 1) putting config files in
 the `src/signalfx-collectd/managed_config` directory; or 2) by specifying the
 config file as a heredoc for the `collectd_config` property in your deployment
@@ -45,7 +39,7 @@ instance_groups:
   - name: signalfx-agent
     release: signalfx-agent
     properties:
-      api_token: abc123
+      access_token: abc123
       collectd_configs: |
         <LoadPlugin python>
           Globals true
@@ -70,12 +64,13 @@ options like passwords.  [BOSH variables](https://bosh.io/docs/cli-int.html)
 are one way to deal with this more effectively.
 
 ### Collectd Plugins
-This release includes all of the python plugins installed to
-`/usr/share/collectd/<integration_name>`, so **make sure your configuration
-reflects that in the `ModulePath` property**.  The `Import` statement will be
-the same as example config files, as well as the `<Module>` tags.  For example,
-the Elasticsearch plugin is installed at `/usr/share/collectd/elasticsearch`,
-so its config file would look like:
+This release includes most of our Python plugins installed to the BOSH package
+dir `/var/vcap/packages/signalfx-collectd/plugins/<integration name>`, so make
+sure to use this directory when specifying `ModulePath` when configuring Python
+plugins.  The `Import` statement will be the same as example config files, as
+well as the `<Module>` tags.  For example, the Elasticsearch plugin is
+installed at `/var/vcap/packages/signalfx-collectd/plugins/elasticsearch`, so
+its config file would look like:
 
 ```
 <LoadPlugin "python">
@@ -83,7 +78,7 @@ so its config file would look like:
 </LoadPlugin>
 
 <Plugin "python">
-    ModulePath "/usr/share/collectd/elasticsearch"
+    ModulePath "/var/vcap/packages/signalfx-collectd/plugins/elasticsearch"
 
     Import "elasticsearch_collectd"
 
