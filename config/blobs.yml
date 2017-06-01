@@ -1,6 +1,3 @@
-runc/runc-linux-amd64:
-  size: 6369872
-  sha: f33590adc1f9670885545ccc49b130f5550d8ce1
-signalfx-collectd/collectd-rootfs.tar.gz:
-  size: 319139489
-  sha: f077b21ed3e46773cb23588841accab2372fe8c8
+signalfx-collectd/collectd-bundle-5.7.0-1.tar.gz:
+  size: 56460761
+  sha: d25b2704e439c922e0c882f5e54b6f70c55771f0

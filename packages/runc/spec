@@ -1,6 +1,0 @@
----
-name: runc
-
-files:
- # The Makefile uses the URL in the comment below to download the blob file
- - runc/runc-linux-amd64 # From https://github.com/opencontainers/runc/releases/download/v1.0.0-rc3/runc-linux-amd64

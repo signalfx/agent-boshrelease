@@ -5,6 +5,7 @@
 blobs/
 
 dev_releases/
+releases/
 .sfx-token
 manifest/agent-with-redis.yml
 config/private.yml
