@@ -23,3 +23,6 @@ properties:
     default: 10M
   collectd_configs:
     description: "A heredoc of the collectd configuration you want to use for this instance"
+  enable_jmx:
+    description: "Set to 'true' to enable Java monitoring.  This default to 'false' since loading the JVM into collectd consumes large amounts of memory"
+    default: false

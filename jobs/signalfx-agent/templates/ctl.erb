@@ -34,6 +34,7 @@ EOH
     SFX_DIM_index=<%= spec.index %> \
     SFX_DIM_host=<%= spec.ip %> \
     SFX_DIM_job=<%= spec.name %> \
+    ENABLE_JMX=<% p('enable_jmx') %> \
     PID_FILE=$PID_FILE \
     LOG_FILE=$LOG_FILE \
       ./run.sh

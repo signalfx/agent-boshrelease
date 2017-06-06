@@ -4,5 +4,5 @@ name: signalfx-collectd
 dependencies: []
 
 files:
- - signalfx-collectd/collectd-bundle-*.tar.gz
+ - signalfx-collectd/collectd-bundle-5.7.0-3.tar.gz
  - signalfx-collectd/managed_config/**/*

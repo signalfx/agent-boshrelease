@@ -1,3 +1,9 @@
 signalfx-collectd/collectd-bundle-5.7.0-1.tar.gz:
   size: 56460761
   sha: d25b2704e439c922e0c882f5e54b6f70c55771f0
+signalfx-collectd/collectd-bundle-5.7.0-2.tar.gz:
+  size: 56461308
+  sha: 922efd59b78d301b49edacd9f9e46ff9348ed6bb
+signalfx-collectd/collectd-bundle-5.7.0-3.tar.gz:
+  size: 104784691
+  sha: 49a251e163b02bca95cd1aefba026c0259036463

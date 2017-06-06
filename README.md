@@ -5,8 +5,8 @@ bundle of collectd](https://github.com/signalfx/collectd-build-bundle) to run.
 
 ## Configuration
 
-Specify your SignalFx access token with the `access_token` property in your
-manifest entry for this release.
+Properties for the `signalfx-agent` job contained in this release are specified
+in the [job spec file](jobs/signalfx-agent/spec) along with descriptions.
 
 There are two ways to configure the collectd agent: 1) putting config files in
 the `src/signalfx-collectd/managed_config` directory; or 2) by specifying the
