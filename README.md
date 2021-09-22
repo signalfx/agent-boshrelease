@@ -1,3 +1,5 @@
+:warning: **This project is deprecated**
+
 # SignalFx Agent BOSH Release
 
 This is a BOSH release of the SignalFx collectd agent. It uses a [self-contained
